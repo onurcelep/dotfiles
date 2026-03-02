@@ -5,7 +5,7 @@ set -euo pipefail
 # Brewfile hash: {{ include "run_onchange_after_brew-bundle.sh.tmpl" | sha256sum }}
 # chezmoi re-runs this script whenever the hash above changes.
 
-brew bundle --no-lock --file=/dev/stdin <<EOF
+brew bundle --file=/dev/stdin <<EOF
 tap "aws/tap"
 tap "homebrew/services"
 
