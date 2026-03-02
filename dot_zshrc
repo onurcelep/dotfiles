@@ -84,7 +84,7 @@ bindkey '^X^E' edit-command-line                  # Ctrl-x Ctrl-e: edit in $EDIT
 eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"; }
 
 # --- 8. atuin (shell history) ---
-command -v atuin &>/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
+command -v atuin &>/dev/null && eval "$(atuin init zsh)"
 
 # --- 9. Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
