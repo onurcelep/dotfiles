@@ -51,6 +51,7 @@ fi
 
 # --- fzf integration ---
 eval "$(fzf --bash 2>/dev/null)" || { [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"; }
+bind -r '"\C-r"' 2>/dev/null  # atuin handles Ctrl+R
 
 # --- Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common

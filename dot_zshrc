@@ -82,6 +82,7 @@ bindkey '^X^E' edit-command-line                  # Ctrl-x Ctrl-e: edit in $EDIT
 
 # --- 7. fzf integration ---
 eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"; }
+bindkey -r '^R' 2>/dev/null  # atuin handles Ctrl+R
 
 # --- 8. atuin (shell history) ---
 command -v atuin &>/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
