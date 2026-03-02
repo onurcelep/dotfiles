@@ -83,16 +83,13 @@ bindkey '^X^E' edit-command-line                  # Ctrl-x Ctrl-e: edit in $EDIT
 # --- 7. fzf integration ---
 eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"; }
 
-# --- 8. zoxide ---
-command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
-
-# --- 9. atuin (shell history) ---
+# --- 8. atuin (shell history) ---
 command -v atuin &>/dev/null && eval "$(atuin init zsh)"
 
-# --- 10. Shared aliases and functions ---
+# --- 9. Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
 
-# --- 11. zsh-autosuggestions ---
+# --- 10. zsh-autosuggestions ---
 for f in \
   "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
   /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
@@ -110,3 +107,6 @@ done
 
 # --- 13. Starship prompt ---
 eval "$(starship init zsh)"
+
+# --- 14. zoxide (must be last) ---
+command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"

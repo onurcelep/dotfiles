@@ -52,11 +52,11 @@ fi
 # --- fzf integration ---
 eval "$(fzf --bash 2>/dev/null)" || { [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"; }
 
-# --- zoxide ---
-command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
-
 # --- Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
 
 # --- Starship prompt ---
 eval "$(starship init bash)"
+
+# --- zoxide (must be last) ---
+command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
