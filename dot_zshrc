@@ -26,18 +26,18 @@ if command -v docker &>/dev/null; then
   unset _docker_comp_dir _docker_comp_file _docker_bin
 fi
 
-# AWS completion via bashcompinit
-autoload -Uz bashcompinit && bashcompinit
-if command -v aws_completer &>/dev/null; then
-  complete -C aws_completer aws
-fi
-
 # Initialize completions with daily cache
 autoload -Uz compinit
 if [[ -n "$HOME/.zcompdump"(#qN.mh+24) ]]; then
   compinit
 else
   compinit -C
+fi
+
+# AWS completion via bashcompinit (must come after compinit)
+autoload -Uz bashcompinit && bashcompinit
+if command -v aws_completer &>/dev/null; then
+  complete -C aws_completer aws
 fi
 
 # Completion styling
@@ -86,10 +86,13 @@ eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/
 # --- 8. zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 
-# --- 9. Shared aliases and functions ---
+# --- 9. atuin (shell history) ---
+command -v atuin &>/dev/null && eval "$(atuin init zsh)"
+
+# --- 10. Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
 
-# --- 10. zsh-autosuggestions ---
+# --- 11. zsh-autosuggestions ---
 for f in \
   "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
   /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
@@ -97,7 +100,7 @@ for f in \
   [[ -f "$f" ]] && source "$f" && break
 done
 
-# --- 11. zsh-syntax-highlighting ---
+# --- 12. zsh-syntax-highlighting ---
 for f in \
   "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
   /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
@@ -105,5 +108,5 @@ for f in \
   [[ -f "$f" ]] && source "$f" && break
 done
 
-# --- 12. Starship prompt ---
+# --- 13. Starship prompt ---
 eval "$(starship init zsh)"
