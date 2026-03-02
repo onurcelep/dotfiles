@@ -1,3 +1,11 @@
+{{ if env "SSH_TTY" -}}
+# Remote: use C-a to avoid conflict with local tmux
+set -g prefix C-a
+unbind C-b
+bind C-a send-prefix
+{{ else -}}
+# Local: default C-b
+{{ end -}}
 unbind r
 bind r source-file ~/.tmux.conf
 setw -g mode-keys vi
