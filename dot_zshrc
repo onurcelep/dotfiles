@@ -113,4 +113,4 @@ eval "$(starship init zsh)"
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 
 # --- 13. atuin (must be last — overrides fzf's ^R binding) ---
-command -v atuin &>/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
+command -v atuin &>/dev/null && eval "$(atuin init zsh)"

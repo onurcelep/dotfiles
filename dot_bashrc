@@ -69,4 +69,4 @@ command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
 [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
 
 # --- atuin (must be last — overrides fzf's Ctrl+R binding) ---
-command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"
+command -v atuin &>/dev/null && eval "$(atuin init bash)"
