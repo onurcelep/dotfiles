@@ -58,7 +58,7 @@ format = "[$symbol($version )]($style)"
 format = '[$symbol($profile )(\($region\) )]($style)'
 
 [hostname]
-ssh_only = true
+ssh_only = false
 format = "[$hostname]($style):"
 
 [docker_context]
