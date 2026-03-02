@@ -6,12 +6,21 @@ Shell and tool configuration managed by [chezmoi](https://www.chezmoi.io/).
 
 | File | Purpose |
 |------|---------|
-| `.zshrc` | Zsh interactive config — aliases, plugins, fzf, completions |
+| `.zshrc` | Zsh interactive config — completions, keybindings, plugin loading |
 | `.zshenv` | Zsh environment — rbenv setup |
 | `.zprofile` | Zsh login — pipx PATH |
+| `.bashrc` | Bash interactive config — completions, prompt |
+| `.shell_common` | Shared aliases and functions (bat, eza, fzf, trash, etc.) |
+| `.config/starship.toml` | Starship cross-shell prompt config |
 | `.tmux.conf` | tmux — catppuccin theme, plugins, keybindings |
 
 All tool references use `command -v` guards so configs work on machines where a tool isn't installed.
+
+## Prerequisites
+
+- [chezmoi](https://www.chezmoi.io/install/)
+- [Starship](https://starship.rs/) — cross-shell prompt (`brew install starship`)
+- Optional: `bat`, `eza`, `fzf`, `fd`, `zoxide`, `ripgrep`, `trash`
 
 ## Quick start
 
@@ -50,11 +59,14 @@ cd ~/.local/share/chezmoi
 git add -A && git commit -m "update zshrc" && git push
 ```
 
-## Machine-local overrides (`.zshenv.local`)
+## Machine-local overrides
 
-Machine-specific settings go in `~/.zshenv.local`, which is **not tracked** by chezmoi. It's sourced from `.zshrc`.
+Machine-specific settings go in untracked local files:
 
-Example for an ARM Mac:
+- **`~/.zshenv.local`** — sourced at the top of `.zshrc` (puts brew in PATH before anything else)
+- **`~/.bashrc.local`** — sourced at the top of `.bashrc`
+
+Example for an ARM Mac (`~/.zshenv.local`):
 
 ```bash
 # Homebrew
@@ -72,16 +84,26 @@ fi
 [[ -d "$HOME/Code/flutter/bin" ]] && export PATH="$HOME/Code/flutter/bin:$PATH"
 ```
 
+## Bash setup note
+
+chezmoi manages `~/.bashrc` but **not** `~/.bash_profile`. If you use bash as a login shell, add the following to your `~/.bash_profile`:
+
+```bash
+[[ -f ~/.bashrc ]] && source ~/.bashrc
+```
+
+This is not done automatically because `.bash_profile` may contain machine-local setup (SDKMAN, conda, etc.).
+
 ## Secrets
 
 Secrets (API keys, tokens, SSH config) are **never** committed to this repo.
 
 ### Options for managing secrets
 
-**1. `.zshenv.local`** — simplest approach for environment variables:
+**1. Local override files** — simplest approach for environment variables:
 
 ```bash
-# ~/.zshenv.local (not tracked)
+# ~/.zshenv.local or ~/.bashrc.local (not tracked)
 export OPENAI_API_KEY="sk-..."
 export AWS_ACCESS_KEY_ID="..."
 ```
@@ -93,7 +115,7 @@ export AWS_ACCESS_KEY_ID="..."
 export API_KEY="{{ (bitwarden "item" "api-key").login.password }}"
 ```
 
-Requires `bw` CLI and an active session (`bwu` helper is defined in `.zshrc`).
+Requires `bw` CLI and an active session (`bwu` helper is defined in `.shell_common`).
 
 **3. 1Password / other managers** — chezmoi supports [many backends](https://www.chezmoi.io/user-guide/password-managers/).
 
@@ -136,41 +158,11 @@ eval "$(/usr/local/bin/brew shellenv)"
 chezmoi data
 
 # Common variables:
-# .chezmoi.os          → "darwin", "linux"
-# .chezmoi.arch        → "arm64", "amd64"
-# .chezmoi.hostname    → machine hostname
-# .chezmoi.username    → current user
-# .chezmoi.homeDir     → home directory path
-```
-
-## Host-specific configuration
-
-### Using chezmoi data
-
-Add custom variables in `~/.config/chezmoi/chezmoi.toml`:
-
-```toml
-[data]
-  machine_type = "personal"  # or "work"
-```
-
-Then use in templates:
-
-```bash
-{{ if eq .machine_type "work" -}}
-source ~/work-tools.sh
-{{ end -}}
-```
-
-### Using `.chezmoiignore`
-
-Exclude files per machine. Create `.chezmoiignore.tmpl` in the source directory:
-
-```
-# Ignore tmux config on servers
-{{ if eq .chezmoi.hostname "prod-server" }}
-.tmux.conf
-{{ end }}
+# .chezmoi.os          -> "darwin", "linux"
+# .chezmoi.arch        -> "arm64", "amd64"
+# .chezmoi.hostname    -> machine hostname
+# .chezmoi.username    -> current user
+# .chezmoi.homeDir     -> home directory path
 ```
 
 ## Useful commands
@@ -190,4 +182,5 @@ chezmoi cat ~/.zshrc    # Show what chezmoi would write
 - `.gitconfig` — contains email, signing keys
 - `.ssh/config` — machine-specific hosts
 - `.bash_profile` — SDKMAN + conda with hardcoded paths
-- `.zshenv.local` — machine-local environment (see above)
+- `.zshenv.local` / `.bashrc.local` — machine-local environment (see above)
+- `.oh-my-zsh/` — no longer used; can be removed after verifying Starship setup

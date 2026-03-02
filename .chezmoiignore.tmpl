@@ -1,0 +1,9 @@
+README.md
+{{ if not (lookPath "zsh") }}
+.zshrc
+.zshenv
+.zprofile
+{{ end }}
+{{ if not (lookPath "bash") }}
+.bashrc
+{{ end }}

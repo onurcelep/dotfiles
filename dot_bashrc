@@ -1,0 +1,62 @@
+# ~/.bashrc — bash interactive configuration
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# --- Machine-local early setup ---
+[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
+
+# --- Detect brew prefix ---
+if command -v brew &>/dev/null; then
+  BREW_PREFIX=$(brew --prefix)
+fi
+
+# --- History ---
+HISTFILE=~/.bash_history
+HISTSIZE=50000
+HISTFILESIZE=50000
+HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+
+# --- Shell options ---
+shopt -s autocd 2>/dev/null
+shopt -s cdspell
+shopt -s checkwinsize
+shopt -s globstar 2>/dev/null
+
+# --- Completions ---
+# bash-completion from brew or system
+if [[ -n "$BREW_PREFIX" && -r "$BREW_PREFIX/etc/profile.d/bash_completion.sh" ]]; then
+  source "$BREW_PREFIX/etc/profile.d/bash_completion.sh"
+elif [[ -r /usr/share/bash-completion/bash_completion ]]; then
+  source /usr/share/bash-completion/bash_completion
+elif [[ -r /etc/bash_completion ]]; then
+  source /etc/bash_completion
+fi
+
+# Docker completion
+if command -v docker &>/dev/null; then
+  eval "$(docker completion bash 2>/dev/null)"
+fi
+
+# AWS completion
+if command -v aws_completer &>/dev/null; then
+  complete -C aws_completer aws
+fi
+
+# kubectl completion
+if command -v kubectl &>/dev/null; then
+  eval "$(kubectl completion bash 2>/dev/null)"
+fi
+
+# --- fzf integration ---
+eval "$(fzf --bash 2>/dev/null)" || [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"
+
+# --- zoxide ---
+command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
+
+# --- Shared aliases and functions ---
+[[ -f ~/.shell_common ]] && source ~/.shell_common
+
+# --- Starship prompt ---
+eval "$(starship init bash)"

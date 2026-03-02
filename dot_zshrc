@@ -1,136 +1,95 @@
-# --- Detect brew prefix (macOS Intel vs ARM, or absent) ---
+# ~/.zshrc — zsh interactive configuration (no oh-my-zsh)
+
+# --- 1. Machine-local early setup (puts brew in PATH) ---
+[[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
+
+# --- 2. Detect brew prefix ---
 if command -v brew &>/dev/null; then
   BREW_PREFIX=$(brew --prefix)
 fi
 
-# --- Machine-local overrides ---
-[[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
+# --- 3. Completions ---
+# zsh-completions from brew/system
+[[ -n "$BREW_PREFIX" && -d "$BREW_PREFIX/share/zsh-completions" ]] && FPATH="$BREW_PREFIX/share/zsh-completions:$FPATH"
+[[ -d /usr/share/zsh/vendor-completions ]] && FPATH="/usr/share/zsh/vendor-completions:$FPATH"
 
-# --- Bitwarden unlock helper ---
-bwu() { export BW_SESSION=$(bw unlock --raw); }
+# Docker completions — cached, regenerated when docker binary changes
+if command -v docker &>/dev/null; then
+  _docker_comp_dir="$HOME/.cache/zsh/completions"
+  _docker_comp_file="$_docker_comp_dir/_docker"
+  _docker_bin="$(command -v docker)"
+  if [[ ! -f "$_docker_comp_file" ]] || [[ "$_docker_bin" -nt "$_docker_comp_file" ]]; then
+    mkdir -p "$_docker_comp_dir"
+    docker completion zsh > "$_docker_comp_file" 2>/dev/null
+  fi
+  FPATH="$_docker_comp_dir:$FPATH"
+  unset _docker_comp_dir _docker_comp_file _docker_bin
+fi
 
-# --- zsh-completions (must be before Oh My Zsh) ---
-[[ -d "$BREW_PREFIX/share/zsh-completions" ]] && FPATH="$BREW_PREFIX/share/zsh-completions:$FPATH"
-[[ -d /usr/share/zsh/vendor-completions ]]    && FPATH="/usr/share/zsh/vendor-completions:$FPATH"
+# AWS completion via bashcompinit
+autoload -Uz bashcompinit && bashcompinit
+if command -v aws_completer &>/dev/null; then
+  complete -C aws_completer aws
+fi
 
-# --- Oh My Zsh ---
-export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="agnoster"
-plugins=(git docker aws zoxide fzf)
-[[ -d "$ZSH" ]] && source "$ZSH/oh-my-zsh.sh"
+# Initialize completions with daily cache
+autoload -Uz compinit
+if [[ -n "$HOME/.zcompdump"(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
 
-# --- General ---
-export EDITOR='nano'
-export LANG=en_US.UTF-8
+# Completion styling
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' special-dirs true
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
-# --- History ---
+# --- 4. History ---
+HISTFILE=~/.zsh_history
 HISTSIZE=50000
 SAVEHIST=50000
-setopt HIST_IGNORE_ALL_DUPS   # no duplicate entries
-setopt HIST_FIND_NO_DUPS      # no duplicates in search
-setopt HIST_REDUCE_BLANKS     # remove extra blanks
-setopt SHARE_HISTORY          # share history across sessions
-setopt APPEND_HISTORY         # append instead of overwrite
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt SHARE_HISTORY
+setopt EXTENDED_HISTORY
+setopt APPEND_HISTORY
 
-# --- Shell options ---
-setopt AUTO_CD                # type directory name to cd into it
-setopt EXTENDED_GLOB          # advanced globbing patterns
-setopt INTERACTIVE_COMMENTS   # allow comments in interactive shell
-setopt NO_BEEP                # no terminal beep
+# --- 5. Shell options ---
+setopt AUTO_CD
+setopt EXTENDED_GLOB
+setopt INTERACTIVE_COMMENTS
+setopt NO_BEEP
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
 
-# --- bat ---
-if command -v bat &>/dev/null; then
-  alias cat="bat"
-  alias catp="bat --plain"
-  alias batdiff="bat --diff"
-  alias bathelp="bat --plain --language=help"
-  export BAT_THEME="Dracula"
-  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-fi
+# --- 6. Key bindings ---
+bindkey -e                                       # emacs mode
+bindkey '^[[A'  history-beginning-search-backward # Up arrow: prefix search
+bindkey '^[[B'  history-beginning-search-forward  # Down arrow: prefix search
+bindkey '^[[H'  beginning-of-line                 # Home
+bindkey '^[[F'  end-of-line                       # End
+bindkey '^[[1;5C' forward-word                    # Ctrl-Right
+bindkey '^[[1;5D' backward-word                   # Ctrl-Left
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line                  # Ctrl-x Ctrl-e: edit in $EDITOR
 
-# --- eza ---
-if command -v eza &>/dev/null; then
-  alias ls="eza --icons"
-  alias ll="eza -la --icons --git"
-  alias la="eza -a --icons"
-  alias tree="eza --tree --icons"
-  alias lt="eza -la --icons --sort=modified --reverse"
-fi
+# --- 7. fzf integration ---
+eval "$(fzf --zsh 2>/dev/null)" || [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
 
-# --- zoxide ---
+# --- 8. zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 
-# --- trash (safe rm) ---
-if command -v trash &>/dev/null; then
-  alias rm="trash"
-elif [[ -x "$BREW_PREFIX/opt/trash/bin/trash" ]]; then
-  export PATH="$BREW_PREFIX/opt/trash/bin:$PATH"
-  alias rm="trash"
-fi
+# --- 9. Shared aliases and functions ---
+[[ -f ~/.shell_common ]] && source ~/.shell_common
 
-# --- fzf + fd + bat ---
-if command -v fzf &>/dev/null; then
-  export FZF_DEFAULT_OPTS="--height 60% --layout=reverse --border --info=inline"
-  export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window=up:3:wrap"
-
-  if command -v fd &>/dev/null; then
-    export FZF_DEFAULT_COMMAND="fd --hidden --follow --exclude .git"
-    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-    export FZF_ALT_C_COMMAND="fd --type d --hidden --follow --exclude .git"
-  fi
-
-  if command -v bat &>/dev/null; then
-    export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
-  fi
-
-  if command -v eza &>/dev/null; then
-    export FZF_ALT_C_OPTS="--preview 'eza --tree --icons --level=2 {}'"
-  fi
-fi
-
-# --- fzf helpers ---
-if command -v fzf &>/dev/null; then
-  # frg: fuzzy ripgrep - interactive grep, then open in editor
-  if command -v rg &>/dev/null; then
-    frg() {
-      local result
-      result=$(rg --color=always --line-number --no-heading "$@" |
-        fzf --ansi --delimiter : \
-            --preview 'bat --color=always --highlight-line {2} {1}' \
-            --preview-window '~3:+{2}+3/2')
-      [[ -n "$result" ]] || return
-      local file line
-      file=$(echo "$result" | awk -F: '{print $1}')
-      line=$(echo "$result" | awk -F: '{print $2}')
-      $EDITOR +"$line" "$file" </dev/tty
-    }
-  fi
-
-  # fkill: fuzzy kill process
-  fkill() {
-    ps -ef | sed 1d | fzf -m --header='[kill process]' | awk '{print $2}' | xargs kill -${1:-9}
-  }
-
-  # fbr: fuzzy git branch checkout
-  fbr() {
-    git branch --all --sort=-committerdate |
-      fzf --header='[git checkout]' --preview 'git log --oneline --graph --color=always {1} -- | head -20' |
-      sed 's/remotes\/origin\///' | xargs git checkout
-  }
-
-  # flog: fuzzy git log browser
-  flog() {
-    git log --oneline --color=always --decorate |
-      fzf --ansi --preview 'git show --color=always {1}' |
-      awk '{print $1}' | xargs git show
-  }
-fi
-
-# --- ripgrep ---
-command -v rg &>/dev/null && export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
-
-# --- zsh-autosuggestions & syntax-highlighting (must be at end) ---
-# Check brew paths, then common Linux paths
+# --- 10. zsh-autosuggestions ---
 for f in \
   "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
   /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
@@ -138,9 +97,13 @@ for f in \
   [[ -f "$f" ]] && source "$f" && break
 done
 
+# --- 11. zsh-syntax-highlighting ---
 for f in \
   "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
   /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
   "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"; do
   [[ -f "$f" ]] && source "$f" && break
 done
+
+# --- 12. Starship prompt ---
+eval "$(starship init zsh)"
