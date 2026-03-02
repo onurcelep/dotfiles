@@ -21,6 +21,9 @@ command -v starship >/dev/null || curl -sS https://starship.rs/install.sh | sh -
 # --- atuin ---
 command -v atuin >/dev/null || curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
 
+# --- bash-preexec (required by atuin for command recording in bash) ---
+[[ -f ~/.bash-preexec.sh ]] || curl -sSL https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
+
 # --- zoxide ---
 command -v zoxide >/dev/null || curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 

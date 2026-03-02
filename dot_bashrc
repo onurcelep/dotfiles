@@ -65,5 +65,8 @@ eval "$(starship init bash)"
 # --- zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
 
+# --- bash-preexec (required by atuin for preexec/precmd hooks) ---
+[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+
 # --- atuin (must be last — overrides fzf's Ctrl+R binding) ---
 command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"
