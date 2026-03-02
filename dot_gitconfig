@@ -1,0 +1,27 @@
+[init]
+	defaultBranch = main
+
+[color]
+	ui = auto
+
+[core]
+	editor = nano --fill=72 --softwrap
+
+[commit]
+	cleanup = strip
+	verbose = true
+
+[format]
+	subjectprefix =
+	pretty = medium
+
+[credential "https://github.com"]
+	helper =
+	helper = !/usr/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/usr/bin/gh auth git-credential
+
+[include]
+	path = ~/.gitconfig.local
