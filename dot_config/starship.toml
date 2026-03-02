@@ -2,6 +2,7 @@
 # https://starship.rs/config/
 
 format = """
+$hostname\
 $directory\
 $git_branch\
 $git_status\
@@ -55,6 +56,10 @@ format = "[$symbol($version )]($style)"
 
 [aws]
 format = '[$symbol($profile )(\($region\) )]($style)'
+
+[hostname]
+ssh_only = true
+format = "[$hostname]($style):"
 
 [docker_context]
 format = "[$symbol$context]($style) "
