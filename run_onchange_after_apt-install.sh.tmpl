@@ -1,0 +1,69 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+set -euo pipefail
+
+# Script hash: {{ include "run_onchange_after_apt-install.sh.tmpl" | sha256sum }}
+# chezmoi re-runs this script whenever the hash above changes.
+
+# --- Phase 1: apt packages (standard repos) ---
+sudo apt-get update -qq
+sudo apt-get install -y \
+  curl git \
+  bat fd-find fzf ripgrep tmux zsh jq mosh ncdu btop ffmpeg \
+  httpie pipx trash-cli \
+  zsh-autosuggestions zsh-syntax-highlighting
+
+# --- Phase 2: tools needing install scripts ---
+
+# --- starship ---
+command -v starship >/dev/null || curl -sS https://starship.rs/install.sh | sh -s -- -y
+
+# --- atuin ---
+command -v atuin >/dev/null || curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+
+# --- zoxide ---
+command -v zoxide >/dev/null || curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+
+# --- eza ---
+command -v eza >/dev/null || {
+  sudo mkdir -p /etc/apt/keyrings
+  wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+  sudo apt-get update -qq
+  sudo apt-get install -y eza
+}
+
+# --- gh (GitHub CLI) ---
+command -v gh >/dev/null || {
+  sudo mkdir -p /etc/apt/keyrings
+  curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list
+  sudo apt-get update -qq
+  sudo apt-get install -y gh
+}
+
+# --- git-delta ---
+command -v delta >/dev/null || {
+  DELTA_VERSION=$(curl -s https://api.github.com/repos/dandavison/delta/releases/latest | grep tag_name | cut -d '"' -f4)
+  curl -fsSL "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_$(dpkg --print-architecture).deb" -o /tmp/git-delta.deb
+  sudo dpkg -i /tmp/git-delta.deb
+  rm /tmp/git-delta.deb
+}
+
+# --- duf ---
+command -v duf >/dev/null || {
+  DUF_VERSION=$(curl -s https://api.github.com/repos/muesli/duf/releases/latest | grep tag_name | cut -d '"' -f4 | tr -d v)
+  DUF_ARCH=$(dpkg --print-architecture)
+  curl -fsSL "https://github.com/muesli/duf/releases/download/v${DUF_VERSION}/duf_${DUF_VERSION}_linux_${DUF_ARCH}.deb" -o /tmp/duf.deb
+  sudo dpkg -i /tmp/duf.deb
+  rm /tmp/duf.deb
+}
+
+# --- tldr (tealdeer, fast Rust implementation) ---
+command -v tldr >/dev/null || {
+  TLDR_ARCH=$(uname -m)
+  curl -fsSL "https://github.com/dbrgn/tealdeer/releases/latest/download/tealdeer-linux-${TLDR_ARCH}-musl" -o /tmp/tldr
+  sudo install /tmp/tldr /usr/local/bin/tldr
+  rm /tmp/tldr
+}
+{{ end -}}
