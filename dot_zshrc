@@ -81,7 +81,7 @@ zle -N edit-command-line
 bindkey '^X^E' edit-command-line                  # Ctrl-x Ctrl-e: edit in $EDITOR
 
 # --- 7. fzf integration ---
-eval "$(fzf --zsh 2>/dev/null)" || [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"; }
 
 # --- 8. zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"

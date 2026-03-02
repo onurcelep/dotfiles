@@ -50,7 +50,7 @@ if command -v kubectl &>/dev/null; then
 fi
 
 # --- fzf integration ---
-eval "$(fzf --bash 2>/dev/null)" || [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"
+eval "$(fzf --bash 2>/dev/null)" || { [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"; }
 
 # --- zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
