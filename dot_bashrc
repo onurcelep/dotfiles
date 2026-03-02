@@ -55,7 +55,6 @@ fi
 
 # --- fzf integration ---
 eval "$(fzf --bash 2>/dev/null)" || { [[ -f "$HOME/.fzf.bash" ]] && source "$HOME/.fzf.bash"; }
-bind -r '"\C-r"' 2>/dev/null  # atuin handles Ctrl+R
 
 # --- Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
@@ -63,8 +62,8 @@ bind -r '"\C-r"' 2>/dev/null  # atuin handles Ctrl+R
 # --- Starship prompt ---
 eval "$(starship init bash)"
 
-# --- atuin (shell history) ---
-command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"
-
-# --- zoxide (must be last) ---
+# --- zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
+
+# --- atuin (must be last — overrides fzf's Ctrl+R binding) ---
+command -v atuin &>/dev/null && eval "$(atuin init bash --disable-up-arrow)"

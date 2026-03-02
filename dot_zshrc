@@ -86,15 +86,11 @@ bindkey '^X^E' edit-command-line                  # Ctrl-x Ctrl-e: edit in $EDIT
 
 # --- 7. fzf integration ---
 eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"; }
-bindkey -r '^R' 2>/dev/null  # atuin handles Ctrl+R
 
-# --- 8. atuin (shell history) ---
-command -v atuin &>/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
-
-# --- 9. Shared aliases and functions ---
+# --- 8. Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
 
-# --- 10. zsh-autosuggestions ---
+# --- 9. zsh-autosuggestions ---
 for f in \
   "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
   /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
@@ -102,7 +98,7 @@ for f in \
   [[ -f "$f" ]] && source "$f" && break
 done
 
-# --- 12. zsh-syntax-highlighting ---
+# --- 10. zsh-syntax-highlighting (must source before atuin to avoid widget interference) ---
 for f in \
   "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
   /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
@@ -110,8 +106,11 @@ for f in \
   [[ -f "$f" ]] && source "$f" && break
 done
 
-# --- 13. Starship prompt ---
+# --- 11. Starship prompt ---
 eval "$(starship init zsh)"
 
-# --- 14. zoxide (must be last) ---
+# --- 12. zoxide ---
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
+
+# --- 13. atuin (must be last — overrides fzf's ^R binding) ---
+command -v atuin &>/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
