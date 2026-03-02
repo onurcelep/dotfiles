@@ -29,8 +29,11 @@ All tool references use `command -v` guards so configs work on machines where a 
 ### New machine
 
 ```bash
-# Install chezmoi and apply dotfiles in one command
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply onurcelep
+# One-liner: installs prerequisites, chezmoi, applies dotfiles, switches to zsh
+bash <(curl -fsSL https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh)
+
+# Or if only wget is available:
+wget -qO- https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh | bash
 
 # Or if chezmoi is already installed
 chezmoi init --apply onurcelep
