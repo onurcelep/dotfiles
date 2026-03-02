@@ -2,13 +2,13 @@
 set -euo pipefail
 
 # Usage: bootstrap.sh [--repo domain/user/repo] [--shell bash|zsh]
-#   --repo   Dotfiles repository (default: github.com/onurcelep/dotfiles)
+#   --repo   Dotfiles repository (default: prompt user)
 #   --shell  Target login shell (default: prompt user)
 #
 # For private repos, the script installs and authenticates with the
 # appropriate CLI (gh for GitHub, glab for GitLab/self-hosted).
 
-REPO="github.com/onurcelep/dotfiles"
+REPO=""
 TARGET_SHELL=""
 
 # --- Parse arguments ---
@@ -30,6 +30,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# --- Prompt for repo if not provided ---
+if [ -z "$REPO" ]; then
+  printf "Dotfiles repo (e.g. github.com/user/dotfiles): "
+  read -r REPO
+  if [ -z "$REPO" ]; then
+    echo "Error: repository is required."
+    exit 1
+  fi
+fi
+
 REPO_DOMAIN="${REPO%%/*}"
 
 echo "==> Bootstrapping dotfiles from ${REPO}..."
@@ -46,8 +56,10 @@ if [ "$(uname)" = "Linux" ]; then
   fi
 fi
 
-# --- Authenticate for private repos (non-default) ---
-if [ "$REPO" != "github.com/onurcelep/dotfiles" ]; then
+# --- Check if repo is accessible, authenticate if not ---
+if ! git ls-remote "https://${REPO}.git" HEAD >/dev/null 2>&1; then
+  echo "==> Repository not publicly accessible, setting up authentication..."
+
   install_github_cli() {
     if command -v gh >/dev/null; then return; fi
     echo "==> Installing GitHub CLI..."

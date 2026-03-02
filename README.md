@@ -13,6 +13,7 @@ Shell and tool configuration managed by [chezmoi](https://www.chezmoi.io/).
 | `.zprofile` | Zsh login — pipx PATH |
 | `.bashrc` | Bash interactive config — completions, prompt |
 | `.shell_common` | Shared aliases and functions (bat, eza, fzf, trash, etc.) |
+| `.gitconfig` | Git config — templated name/email, credential helper, includes `.gitconfig.local` |
 | `.config/starship.toml` | Starship cross-shell prompt config |
 | `.tmux.conf` | tmux — catppuccin theme, plugins, keybindings |
 
@@ -29,18 +30,17 @@ All tool references use `command -v` guards so configs work on machines where a 
 ### New machine
 
 ```bash
-# One-liner: installs prerequisites, chezmoi, applies dotfiles, sets login shell
+# One-liner (prompts for repo, name, email, shell)
 bash <(curl -fsSL https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh)
 
 # Non-interactive
-bash <(curl -fsSL https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh) --shell zsh
+bash <(curl -fsSL ...) --repo github.com/youruser/dotfiles --shell zsh
 
-# Private / self-hosted GitLab mirror (installs glab, prompts for auth)
+# Private / self-hosted GitLab (auto-detects, installs glab, prompts for auth)
 bash bootstrap.sh --repo gitlab.company.com/user/dotfiles
-
-# Or if chezmoi is already installed
-chezmoi init --apply onurcelep
 ```
+
+On first run, chezmoi will prompt for your name, email, and GitHub username. These are saved in `~/.config/chezmoi/chezmoi.toml` and used to template `.gitconfig` and other personal configs.
 
 ### Existing machine
 
@@ -187,7 +187,6 @@ chezmoi cat ~/.zshrc    # Show what chezmoi would write
 
 ## Files NOT tracked (by design)
 
-- `.gitconfig` — contains email, signing keys
 - `.ssh/config` — machine-specific hosts
 - `.bash_profile` — SDKMAN + conda with hardcoded paths
 - `.zshenv.local` / `.bashrc.local` — machine-local environment (see above)
