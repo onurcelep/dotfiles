@@ -1,0 +1,193 @@
+# Dotfiles
+
+Shell and tool configuration managed by [chezmoi](https://www.chezmoi.io/).
+
+## What's tracked
+
+| File | Purpose |
+|------|---------|
+| `.zshrc` | Zsh interactive config — aliases, plugins, fzf, completions |
+| `.zshenv` | Zsh environment — rbenv setup |
+| `.zprofile` | Zsh login — pipx PATH |
+| `.tmux.conf` | tmux — catppuccin theme, plugins, keybindings |
+
+All tool references use `command -v` guards so configs work on machines where a tool isn't installed.
+
+## Quick start
+
+### New machine
+
+```bash
+# Install chezmoi and apply dotfiles in one command
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply onurcelep
+
+# Or if chezmoi is already installed
+chezmoi init --apply onurcelep
+```
+
+### Existing machine
+
+```bash
+# Pull latest changes and apply
+chezmoi update
+
+# See what would change before applying
+chezmoi diff
+```
+
+## Daily workflow
+
+```bash
+# Edit a managed file (opens in $EDITOR, applies on save)
+chezmoi edit ~/.zshrc
+
+# Or edit directly then re-add
+vim ~/.zshrc
+chezmoi add ~/.zshrc
+
+# Push changes
+cd ~/.local/share/chezmoi
+git add -A && git commit -m "update zshrc" && git push
+```
+
+## Machine-local overrides (`.zshenv.local`)
+
+Machine-specific settings go in `~/.zshenv.local`, which is **not tracked** by chezmoi. It's sourced from `.zshrc`.
+
+Example for an ARM Mac:
+
+```bash
+# Homebrew
+if [[ -f /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# Java (Homebrew OpenJDK)
+if [[ -d /opt/homebrew/opt/openjdk ]]; then
+  export JAVA_HOME=/opt/homebrew/opt/openjdk
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
+# Flutter
+[[ -d "$HOME/Code/flutter/bin" ]] && export PATH="$HOME/Code/flutter/bin:$PATH"
+```
+
+## Secrets
+
+Secrets (API keys, tokens, SSH config) are **never** committed to this repo.
+
+### Options for managing secrets
+
+**1. `.zshenv.local`** — simplest approach for environment variables:
+
+```bash
+# ~/.zshenv.local (not tracked)
+export OPENAI_API_KEY="sk-..."
+export AWS_ACCESS_KEY_ID="..."
+```
+
+**2. Bitwarden** — chezmoi has built-in support:
+
+```bash
+# In a chezmoi template file (e.g. dot_zshrc.tmpl)
+export API_KEY="{{ (bitwarden "item" "api-key").login.password }}"
+```
+
+Requires `bw` CLI and an active session (`bwu` helper is defined in `.zshrc`).
+
+**3. 1Password / other managers** — chezmoi supports [many backends](https://www.chezmoi.io/user-guide/password-managers/).
+
+## Templates
+
+Templates let a single file adapt to different machines. Rename a source file to add `.tmpl`:
+
+```bash
+chezmoi add --template ~/.zshrc
+# Creates dot_zshrc.tmpl instead of dot_zshrc
+```
+
+### Template basics
+
+chezmoi uses Go's `text/template` syntax:
+
+```bash
+# Conditional on OS
+{{ if eq .chezmoi.os "darwin" -}}
+alias flush-dns="sudo dscacheutil -flushcache"
+{{ end -}}
+
+# Conditional on hostname
+{{ if eq .chezmoi.hostname "work-laptop" -}}
+export HTTP_PROXY="http://proxy.corp:8080"
+{{ end -}}
+
+# Conditional on architecture
+{{ if eq .chezmoi.arch "arm64" -}}
+eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ else -}}
+eval "$(/usr/local/bin/brew shellenv)"
+{{ end -}}
+```
+
+### Available variables
+
+```bash
+# See all available data
+chezmoi data
+
+# Common variables:
+# .chezmoi.os          → "darwin", "linux"
+# .chezmoi.arch        → "arm64", "amd64"
+# .chezmoi.hostname    → machine hostname
+# .chezmoi.username    → current user
+# .chezmoi.homeDir     → home directory path
+```
+
+## Host-specific configuration
+
+### Using chezmoi data
+
+Add custom variables in `~/.config/chezmoi/chezmoi.toml`:
+
+```toml
+[data]
+  machine_type = "personal"  # or "work"
+```
+
+Then use in templates:
+
+```bash
+{{ if eq .machine_type "work" -}}
+source ~/work-tools.sh
+{{ end -}}
+```
+
+### Using `.chezmoiignore`
+
+Exclude files per machine. Create `.chezmoiignore.tmpl` in the source directory:
+
+```
+# Ignore tmux config on servers
+{{ if eq .chezmoi.hostname "prod-server" }}
+.tmux.conf
+{{ end }}
+```
+
+## Useful commands
+
+```bash
+chezmoi doctor          # Health check
+chezmoi managed         # List all managed files
+chezmoi diff            # Show pending changes
+chezmoi apply -v        # Apply changes (verbose)
+chezmoi cd              # cd into source directory
+chezmoi data            # Show template variables
+chezmoi cat ~/.zshrc    # Show what chezmoi would write
+```
+
+## Files NOT tracked (by design)
+
+- `.gitconfig` — contains email, signing keys
+- `.ssh/config` — machine-specific hosts
+- `.bash_profile` — SDKMAN + conda with hardcoded paths
+- `.zshenv.local` — machine-local environment (see above)
