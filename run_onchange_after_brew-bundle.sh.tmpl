@@ -1,0 +1,59 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+
+# Brewfile hash: {{ include "run_onchange_after_brew-bundle.sh.tmpl" | sha256sum }}
+# chezmoi re-runs this script whenever the hash above changes.
+
+brew bundle --no-lock --file=/dev/stdin <<EOF
+tap "aws/tap"
+tap "homebrew/services"
+
+# Shell
+brew "bat"
+brew "eza"
+brew "fd"
+brew "fzf"
+brew "ripgrep"
+brew "starship"
+brew "tmux"
+brew "trash"
+brew "zoxide"
+brew "atuin"
+
+# Zsh plugins
+brew "zsh-autosuggestions"
+brew "zsh-completions"
+brew "zsh-syntax-highlighting"
+
+# Dev
+brew "chezmoi"
+brew "gh"
+brew "git-delta"
+brew "go"
+brew "hugo"
+brew "jq"
+brew "node"
+brew "pipx"
+
+# Infra
+brew "docker"
+brew "kubernetes-cli"
+brew "bitwarden-cli"
+brew "libvirt"
+brew "mosh"
+brew "httpie"
+
+# System
+brew "btop"
+brew "duf"
+brew "ffmpeg"
+brew "ncdu"
+brew "tldr"
+
+# Casks
+cask "blackhole-2ch"
+cask "dozer"
+cask "font-meslo-lg-nerd-font"
+EOF
+{{ end -}}

@@ -7,7 +7,8 @@ Shell and tool configuration managed by [chezmoi](https://www.chezmoi.io/).
 | File | Purpose |
 |------|---------|
 | `.zshrc` | Zsh interactive config — completions, keybindings, plugin loading |
-| `.zshenv` | Zsh environment — rbenv setup |
+| `.zshenv` | Zsh environment (machine-local env goes in `.zshenv.local`) |
+| `run_onchange_after_brew-bundle.sh.tmpl` | Auto-installs Homebrew packages on macOS via `brew bundle` |
 | `.zprofile` | Zsh login — pipx PATH |
 | `.bashrc` | Bash interactive config — completions, prompt |
 | `.shell_common` | Shared aliases and functions (bat, eza, fzf, trash, etc.) |
@@ -19,8 +20,7 @@ All tool references use `command -v` guards so configs work on machines where a 
 ## Prerequisites
 
 - [chezmoi](https://www.chezmoi.io/install/)
-- [Starship](https://starship.rs/) — cross-shell prompt (`brew install starship`)
-- Optional: `bat`, `eza`, `fzf`, `fd`, `zoxide`, `ripgrep`, `trash`
+- [Homebrew](https://brew.sh/) (macOS) — on the first `chezmoi apply`, a `run_onchange` script automatically runs `brew bundle` to install all required packages (Starship, bat, eza, fzf, etc.)
 
 ## Quick start
 

@@ -1,5 +1,2 @@
-# rbenv
-if command -v rbenv &>/dev/null || [[ -d "$HOME/.rbenv" ]]; then
-  export PATH="$HOME/.rbenv/bin:$PATH"
-  eval "$(rbenv init -)"
-fi
+# Managed by chezmoi — intentionally minimal.
+# Machine-local environment goes in ~/.zshenv.local (not tracked).
