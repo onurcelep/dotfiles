@@ -1,40 +1,111 @@
 #!/bin/bash
 set -euo pipefail
 
-# Usage: bootstrap.sh [--shell bash|zsh]
+# Usage: bootstrap.sh [--repo domain/user/repo] [--shell bash|zsh]
+#   --repo   Dotfiles repository (default: github.com/onurcelep/dotfiles)
 #   --shell  Target login shell (default: prompt user)
+#
+# For private repos, the script installs and authenticates with the
+# appropriate CLI (gh for GitHub, glab for GitLab/self-hosted).
 
+REPO="github.com/onurcelep/dotfiles"
 TARGET_SHELL=""
 
 # --- Parse arguments ---
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --repo)
+      REPO="$2"
+      shift 2
+      ;;
     --shell)
       TARGET_SHELL="$2"
       shift 2
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: bootstrap.sh [--shell bash|zsh]"
+      echo "Usage: bootstrap.sh [--repo domain/user/repo] [--shell bash|zsh]"
       exit 1
       ;;
   esac
 done
 
-echo "==> Bootstrapping dotfiles..."
+REPO_DOMAIN="${REPO%%/*}"
+
+echo "==> Bootstrapping dotfiles from ${REPO}..."
 
 # --- Prerequisites (Linux) ---
 if [ "$(uname)" = "Linux" ]; then
-  if ! command -v git >/dev/null || ! command -v curl >/dev/null; then
-    echo "==> Installing prerequisites (curl, git)..."
+  NEEDED=""
+  command -v curl >/dev/null || NEEDED="$NEEDED curl"
+  command -v git >/dev/null  || NEEDED="$NEEDED git"
+  if [ -n "$NEEDED" ]; then
+    echo "==> Installing prerequisites:${NEEDED}..."
     sudo apt-get update -qq
-    sudo apt-get install -y curl git
+    sudo apt-get install -y $NEEDED
   fi
+fi
+
+# --- Authenticate for private repos (non-default) ---
+if [ "$REPO" != "github.com/onurcelep/dotfiles" ]; then
+  install_github_cli() {
+    if command -v gh >/dev/null; then return; fi
+    echo "==> Installing GitHub CLI..."
+    if [ "$(uname)" = "Linux" ]; then
+      sudo mkdir -p -m 755 /etc/apt/keyrings
+      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+      sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+      sudo apt-get update -qq
+      sudo apt-get install -y gh
+    elif [ "$(uname)" = "Darwin" ]; then
+      brew install gh
+    fi
+  }
+
+  install_gitlab_cli() {
+    if command -v glab >/dev/null; then return; fi
+    echo "==> Installing GitLab CLI..."
+    if [ "$(uname)" = "Linux" ]; then
+      ARCH=$(dpkg --print-architecture)
+      GLAB_TAG=$(curl -fsSL "https://gitlab.com/api/v4/projects/34675721/releases/permalink/latest" \
+        | grep -o '"tag_name":"[^"]*"' | head -1 | cut -d'"' -f4)
+      GLAB_VER="${GLAB_TAG#v}"
+      GLAB_DEB=$(mktemp /tmp/glab-XXXXXX.deb)
+      curl -fsSL "https://gitlab.com/gitlab-org/cli/-/releases/${GLAB_TAG}/downloads/glab_${GLAB_VER}_linux_${ARCH}.deb" \
+        -o "$GLAB_DEB"
+      sudo dpkg -i "$GLAB_DEB"
+      rm -f "$GLAB_DEB"
+    elif [ "$(uname)" = "Darwin" ]; then
+      brew install glab
+    fi
+  }
+
+  case "$REPO_DOMAIN" in
+    github.com)
+      install_github_cli
+      if ! gh auth status >/dev/null 2>&1; then
+        echo "==> Logging in to GitHub..."
+        gh auth login
+      fi
+      gh auth setup-git
+      ;;
+    *)
+      install_gitlab_cli
+      if ! glab auth status --hostname "$REPO_DOMAIN" >/dev/null 2>&1; then
+        echo "==> Logging in to GitLab ($REPO_DOMAIN)..."
+        glab auth login --hostname "$REPO_DOMAIN"
+      fi
+      glab auth setup-git --hostname "$REPO_DOMAIN"
+      ;;
+  esac
 fi
 
 # --- Install chezmoi and apply dotfiles ---
 echo "==> Installing chezmoi and applying dotfiles..."
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply onurcelep
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "https://${REPO}.git"
 
 # --- Change shell ---
 if [ -z "$TARGET_SHELL" ]; then

@@ -29,11 +29,14 @@ All tool references use `command -v` guards so configs work on machines where a 
 ### New machine
 
 ```bash
-# One-liner: installs prerequisites, chezmoi, applies dotfiles, switches to zsh
+# One-liner: installs prerequisites, chezmoi, applies dotfiles, sets login shell
 bash <(curl -fsSL https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh)
 
-# Or if only wget is available:
-wget -qO- https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh | bash
+# Non-interactive
+bash <(curl -fsSL https://raw.githubusercontent.com/onurcelep/dotfiles/main/bootstrap.sh) --shell zsh
+
+# Private / self-hosted GitLab mirror (installs glab, prompts for auth)
+bash bootstrap.sh --repo gitlab.company.com/user/dotfiles
 
 # Or if chezmoi is already installed
 chezmoi init --apply onurcelep
