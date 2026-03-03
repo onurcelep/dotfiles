@@ -82,5 +82,9 @@ set-option -g default-shell {{ env "SHELL" }}
 set -g @plugin 'tmux-plugins/tmux-yank'
 set -g @yank_selection_mouse 'clipboard'
 
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @continuum-restore 'on'
+
 # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
 run '~/.tmux/plugins/tpm/tpm'
