@@ -95,3 +95,10 @@ fi
 
 # --- ripgrep ---
 command -v rg &>/dev/null && export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
+
+# --- tmux: use C-a prefix in SSH sessions to avoid conflict with local C-b ---
+# Runs on every new shell inside tmux, so works even when the server was
+# already running before the SSH connection was made.
+if [[ -n "${SSH_CONNECTION:-}" && -n "${TMUX:-}" ]]; then
+  tmux set prefix C-a \; unbind C-b \; bind C-a send-prefix 2>/dev/null || true
+fi
