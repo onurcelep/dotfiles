@@ -90,6 +90,9 @@ eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/
 # --- 8. Shared aliases and functions ---
 [[ -f ~/.shell_common ]] && source ~/.shell_common
 
+# Fix completions for aliased commands (aliases defined in .shell_common)
+command -v eza &>/dev/null && compdef eza=eza ls=eza ll=eza la=eza lt=eza
+
 # --- 9. zsh-autosuggestions ---
 for f in \
   "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
