@@ -91,7 +91,7 @@ eval "$(fzf --zsh 2>/dev/null)" || { [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/
 [[ -f ~/.shell_common ]] && source ~/.shell_common
 
 # Fix completions for aliased commands (aliases defined in .shell_common)
-command -v eza &>/dev/null && compdef eza=eza ls=eza ll=eza la=eza lt=eza
+command -v eza &>/dev/null && compdef _eza ls ll la lt
 
 # --- 9. zsh-autosuggestions ---
 for f in \
