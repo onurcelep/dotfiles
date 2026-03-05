@@ -20,11 +20,11 @@ fi
 
 # --- eza ---
 if command -v eza &>/dev/null; then
-  alias ls="eza --icons"
-  alias ll="eza -la --icons --git"
-  alias la="eza -a --icons"
-  alias tree="eza --tree --icons"
-  alias lt="eza -la --icons --sort=modified --reverse"
+  alias ls="eza --icons=auto"
+  alias ll="eza -la --icons=auto --git"
+  alias la="eza -a --icons=auto"
+  alias tree="eza --tree --icons=auto"
+  alias lt="eza -la --icons=auto --sort=modified --reverse"
 fi
 
 # --- trash (safe rm) ---
