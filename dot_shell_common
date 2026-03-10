@@ -15,7 +15,7 @@ if command -v bat &>/dev/null; then
   alias batdiff="bat --diff"
   alias bathelp="bat --plain --language=help"
   export BAT_THEME="Dracula"
-  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+  export MANPAGER="bat -l man -p"
 fi
 
 # --- eza ---
