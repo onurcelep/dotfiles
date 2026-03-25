@@ -1,0 +1,14 @@
+#!/bin/bash
+set -euo pipefail
+
+# tmux.conf hash: {{ include "dot_tmux.conf.tmpl" | sha256sum }}
+# chezmoi re-runs this script whenever .tmux.conf changes.
+
+TPM_DIR="${HOME}/.tmux/plugins/tpm"
+
+if [ -d "${TPM_DIR}" ]; then
+  echo "==> Installing/updating tmux plugins via TPM..."
+  "${TPM_DIR}/bin/install_plugins"
+else
+  echo "==> TPM not found, skipping tmux plugin install."
+fi
