@@ -8,3 +8,10 @@ bootstrap.sh
 {{ if not (lookPath "bash") }}
 .bashrc
 {{ end }}
+{{ if not (lookPath "jq") }}
+.claude/settings.json
+.claude/statusline-command.sh
+{{ end }}
+{{ if not (lookPath "rtk") }}
+.claude/RTK.md
+{{ end }}

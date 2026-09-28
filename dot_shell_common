@@ -109,3 +109,18 @@ tssh() {
     exec \"${SHELL:-bash}\"
   "'
 }
+
+# Drop the Claude Code project template (pre-commit Stop hook, worktree merge
+# cleanup) into a repo. Template is staged by chezmoi in ~/.claude.
+claude-init-project() {
+  local dest="${1:-.}/.claude"
+  local src="$HOME/.claude/project-template"
+  [ -d "$src" ] || { echo "claude-init-project: $src missing, run chezmoi apply" >&2; return 1; }
+  mkdir -p "$dest/hooks"
+  cp "$src"/hooks/*.sh "$dest/hooks/"
+  if [ -e "$dest/settings.json" ]; then
+    echo "claude-init-project: $dest/settings.json exists, merge hooks from $src/settings.json by hand" >&2
+  else
+    cp "$src/settings.json" "$dest/settings.json"
+  fi
+}

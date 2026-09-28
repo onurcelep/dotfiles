@@ -1,0 +1,25 @@
+#!/bin/sh
+# chezmoi modify_ script: the current ~/.claude/settings.json arrives on stdin.
+# Claude Code rewrites this file at runtime (model on /model, enabledPlugins
+# and extraKnownMarketplaces on plugin install, autoMode when it profiles a
+# machine), so only the keys below are managed; everything else passes
+# through untouched.
+set -eu
+current="$(cat)"
+[ -n "$current" ] || current='{}'
+printf '%s\n' "$current" | jq '
+  .effortLevel = "high"
+  | .skipWorkflowUsageWarning = true
+  | .statusLine = {
+      "type": "command",
+      "command": "$HOME/.claude/statusline-command.sh",
+      "padding": 0
+    }
+{{- if lookPath "rtk" }}
+  | if ([.hooks.PreToolUse[]?.hooks[]?.command] | index("rtk hook claude")) then .
+    else .hooks.PreToolUse += [{
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "rtk hook claude" }]
+    }] end
+{{- end }}
+'

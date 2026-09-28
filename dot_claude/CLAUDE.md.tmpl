@@ -1,0 +1,87 @@
+{{- if lookPath "rtk" }}@RTK.md
+
+{{ end -}}
+# Global operating instructions
+
+## Git worktree isolation
+
+Do work inside a dedicated git worktree, never in a repository's primary or
+shared checkout. Concurrent sessions and sub-agents share the same on-disk
+checkout; running history operations (checkout, switch, rebase, reset) in the
+shared working tree collides with them and can land commits on the wrong branch.
+
+1. `git worktree add <path> <branch>`, or `git worktree add -b <new-branch> <path> <base-ref>`.
+2. Do all edits, commits, hook runs, and pushes from that worktree.
+3. `git worktree remove <path>` when finished.
+
+Never run checkout/switch/rebase/reset in the primary checkout to set up work.
+
+## Commit messages and code comments: durable rationale only
+
+A commit message or code comment is read by engineers with zero context about
+the session or incident that produced the change. Write for that reader.
+
+Commit messages state what changed and the concise technical why: the
+underlying mechanism or constraint, in a few sentences (roughly 5-15 lines).
+Do not enumerate implementation details the diff already shows. They must not
+contain debugging narratives (machine names, dates, measured values,
+"we noticed X then tried Y"), verification transcripts, or references to the
+conversation or tooling that produced the change.
+
+Code comments carry only the non-obvious lasting constraint the next maintainer
+needs in order to not break the code, in 1-4 lines. How the constraint was
+discovered is history, not a constraint.
+
+No duplication: each fact lives in exactly one place. Material excluded from a
+commit message often belongs in the PR description, a runbook, or the issue
+tracker.
+
+Litmus test: would this sentence still matter to a reader in two years who never
+heard of the events behind the change? If not, cut it or move it.
+
+## Commit message style
+
+Plain ASCII punctuation only. No em-dash, en-dash, curly quotes, or ellipsis
+characters. Double hyphens only as literal CLI flag prefixes. Restructure a
+sentence rather than reaching for an em-dash.
+
+## Definition of done
+
+A code-modifying task is incomplete until, in the repo that was modified:
+
+1. Pre-commit runs clean if the repo has `.pre-commit-config.yaml`.
+2. The test suite passes if the repo has one.
+3. Type checking passes if the repo uses mypy.
+4. Commit messages lint clean if the repo has `.gitlint`.
+
+Never use `--no-verify`. Never report completion with failing checks.
+
+## Python execution
+
+Prefer `uv run <command>` over bare `python`, `pip`, or `pytest` falling through
+to system Python.
+
+## Delegate isolated lookups to sub-agents
+
+For a self-contained lookup or research question whose intermediate output (tool
+calls, file dumps, search results) is not needed afterward, delegate it to a
+sub-agent. Only its final summary re-enters the main session, keeping the main
+context free of exploration noise.
+
+## Parallel sub-agents
+
+When spawning multiple sub-agents that modify files in the same repository, pass
+`isolation: "worktree"` to each so they do not conflict. Merge their branches
+afterwards.
+
+## Escalation
+
+Seek clarification when requirements are ambiguous, when a change might break a
+cross-component contract, when security or auth implications are unclear, or
+when integration requires an architectural decision.
+{{ if stat (joinPath .chezmoi.homeDir ".claude/skills/graphify") }}
+## graphify
+
+When the user types `/graphify`, use the installed graphify skill
+(`~/.claude/skills/graphify/SKILL.md`) before doing anything else.
+{{ end -}}

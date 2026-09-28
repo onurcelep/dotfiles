@@ -16,6 +16,12 @@ Shell and tool configuration managed by [chezmoi](https://www.chezmoi.io/).
 | `.gitconfig` | Git config — templated name/email, credential helper, includes `.gitconfig.local` |
 | `.config/starship.toml` | Starship cross-shell prompt config |
 | `.tmux.conf` | tmux — catppuccin theme, plugins, keybindings |
+| `.claude/CLAUDE.md` | Claude Code global rules — worktree isolation, commit-message discipline, definition of done |
+| `.claude/settings.json` | `modify_` script: jq-merges a few managed keys, leaves everything Claude Code writes at runtime untouched |
+| `.claude/statusline-command.sh` | Claude Code statusline — user@host, cwd, model, context % |
+| `.claude/skills/` | Personal Claude Code skills (`cli-design`, `grill-me`) |
+| `.claude/project-template/` | Per-repo `.claude/` starter (pre-commit Stop hook, worktree-merge cleanup); install with `claude-init-project` |
+| `run_onchange_after_claude-plugins.sh.tmpl` | Installs Claude Code plugins from the official marketplace; best-effort, never fails `chezmoi apply` |
 
 All tool references use `command -v` guards so configs work on machines where a tool isn't installed.
 

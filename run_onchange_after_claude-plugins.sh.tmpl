@@ -1,0 +1,22 @@
+{{ if lookPath "claude" -}}
+#!/bin/bash
+
+# Script hash: {{ include "run_onchange_after_claude-plugins.sh.tmpl" | sha256sum }}
+# chezmoi re-runs this script whenever the hash above changes.
+#
+# Best effort: an offline or logged-out machine must not fail `chezmoi apply`.
+
+MARKETPLACE=claude-plugins-official
+PLUGINS=(superpowers claude-md-management playground)
+
+claude plugin marketplace add anthropics/claude-plugins-official >/dev/null 2>&1 || true
+
+for p in "${PLUGINS[@]}"; do
+  if claude plugin install -y "$p@$MARKETPLACE" >/dev/null 2>&1; then
+    echo "claude plugin: $p"
+  else
+    echo "claude plugin: $p not installed (offline or not logged in)." >&2
+    echo "  retry: claude plugin install $p@$MARKETPLACE" >&2
+  fi
+done
+{{ end -}}
