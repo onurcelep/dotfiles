@@ -4,6 +4,8 @@ if-shell '[ -n "$SSH_TTY" ]' \
   'set -g prefix C-b'
 unbind r
 bind r source-file ~/.tmux.conf
+# Searchable list of described key bindings
+bind -N 'Search key bindings' '?' display-popup -E -w 70% -h 70% "tmux list-keys -N | fzf --reverse --no-sort --prompt='tmux keys> ' --header='type to search, Esc to close'"
 setw -g mode-keys vi
 set -g mouse on
 set -g set-clipboard on
