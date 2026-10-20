@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Claude Code Notification hook: desktop popup plus sound naming the
-# session (project and tmux window). Clicking the popup switches tmux to
+# session (its topic and tmux pane). Clicking the popup switches tmux to
 # the pane that raised it.
 set -u
 command -v notify-send >/dev/null || exit 0
@@ -8,11 +8,18 @@ command -v notify-send >/dev/null || exit 0
 input=$(cat)
 msg=$(jq -r '.message // "Needs your attention"' <<<"$input")
 proj=$(basename "$(jq -r '.cwd // empty' <<<"$input")")
-title="Claude: ${proj:-session}"
+topic=""
+where=$proj
 pane=${TMUX_PANE:-}
 if [ -n "$pane" ]; then
-  title+=" [$(tmux display -p -t "$pane" '#S:#I #W' 2>/dev/null)]"
+  # Claude Code sets the terminal title to the session topic behind a
+  # status glyph (e.g. "✳ Fix login bug"); tmux keeps it as pane_title.
+  topic=$(tmux display -p -t "$pane" '#{pane_title}' 2>/dev/null |
+    sed -E 's/^[^[:alnum:]]+ //')
+  where="$(tmux display -p -t "$pane" '#S:#I.#P' 2>/dev/null) · $proj"
 fi
+title="Claude: ${topic:-${proj:-session}}"
+msg+=$'\n'"$where"
 
 sound=/usr/share/sounds/freedesktop/stereo/window-attention.oga
 if command -v pw-play >/dev/null && [ -f "$sound" ]; then
