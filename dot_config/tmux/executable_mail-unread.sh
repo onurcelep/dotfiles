@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Print the unread count of one IMAP folder for the tmux status bar.
-# Prints nothing when unconfigured, unreachable or at zero. The server is
+# Prints nothing when unconfigured or unreachable. The server is
 # queried at most once per MAIL_UNREAD_INTERVAL seconds; tmux redraws the
 # status far more often.
 #
@@ -30,5 +30,5 @@ else
   count=$(sed -n 's/.*UNSEEN \([0-9][0-9]*\).*/\1/p' <<<"$reply")
   printf '%s' "$count" >"$cache"
 fi
-[ "${count:-0}" -gt 0 ] 2>/dev/null && printf '%s' "$count"
+[ -n "$count" ] && printf '%s' "$count"
 exit 0
