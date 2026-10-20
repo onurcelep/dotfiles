@@ -34,12 +34,13 @@ if command -v pw-play >/dev/null && [ -f "$sound" ]; then
   ) </dev/null >/dev/null 2>&1 &
 fi
 
-# Critical urgency keeps the popup on screen until clicked or dismissed, so
-# the click-to-pane action stays usable. notify-send --wait blocks until the
-# popup closes, so it runs detached with all fds redirected or Claude Code
-# would wait on the hook.
+# The click-to-pane action only works while the popup is visible, so it
+# stays up longer than the desktop default (CLAUDE_NOTIFY_TIMEOUT_MS).
+# notify-send --wait blocks until the popup closes, so it runs detached
+# with all fds redirected or Claude Code would wait on the hook.
 (
-  action=$(notify-send -a "Claude Code" -i utilities-terminal -u critical \
+  action=$(notify-send -a "Claude Code" -i utilities-terminal \
+    -t "${CLAUDE_NOTIFY_TIMEOUT_MS:-30000}" \
     ${pane:+--action=default=Open} --wait "$title" "$msg")
   if [ "$action" = default ] && [ -n "$pane" ]; then
     tmux switch-client -t "$pane" \; select-window -t "$pane" \; \
