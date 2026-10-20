@@ -22,4 +22,10 @@ printf '%s\n' "$current" | jq '
       "hooks": [{ "type": "command", "command": "rtk hook claude" }]
     }] end
 {{- end }}
+{{- if lookPath "notify-send" }}
+  | if ([.hooks.Notification[]?.hooks[]?.command] | index("$HOME/.claude/hooks/notify.sh")) then .
+    else .hooks.Notification += [{
+      "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/notify.sh" }]
+    }] end
+{{- end }}
 '
