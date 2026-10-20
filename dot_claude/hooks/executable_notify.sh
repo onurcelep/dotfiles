@@ -16,7 +16,15 @@ fi
 
 sound=/usr/share/sounds/freedesktop/stereo/window-attention.oga
 if command -v pw-play >/dev/null && [ -f "$sound" ]; then
-  pw-play --volume 1.5 "$sound" </dev/null >/dev/null 2>&1 &
+  # Idle outputs (HDMI/DP especially) are suspended and drop the start of a
+  # stream while waking, which can swallow a short sound entirely. One second
+  # of raw silence (s16, 48 kHz, stereo) wakes the sink first.
+  (
+    head -c 192000 /dev/zero | pw-play --raw - &
+    sleep 0.8
+    pw-play --volume 1.5 "$sound"
+    wait
+  ) </dev/null >/dev/null 2>&1 &
 fi
 
 # notify-send --wait blocks until the popup is closed, so it must run
