@@ -14,7 +14,7 @@ if [ -n "$pane" ]; then
   title+=" [$(tmux display -p -t "$pane" '#S:#I #W' 2>/dev/null)]"
 fi
 
-sound=/usr/share/sounds/freedesktop/stereo/message-new-instant.oga
+sound=/usr/share/sounds/freedesktop/stereo/complete.oga
 if command -v pw-play >/dev/null && [ -f "$sound" ]; then
   pw-play "$sound" </dev/null >/dev/null 2>&1 &
 fi
