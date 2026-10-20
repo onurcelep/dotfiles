@@ -11,6 +11,21 @@ proj=$(basename "$(jq -r '.cwd // empty' <<<"$input")")
 topic=""
 where=$proj
 pane=${TMUX_PANE:-}
+
+# Stay quiet when the user is already looking at this pane: it is the
+# active pane of its session's current window and a client showing that
+# session has terminal focus. Client focus is only tracked with tmux
+# focus-events on; otherwise the flag is stale and cannot be trusted.
+if [ -n "$pane" ] && [ "$(tmux show -gv focus-events 2>/dev/null)" = on ]; then
+  read -r sid visible < <(tmux display -p -t "$pane" \
+    '#{session_id} #{pane_active}#{window_active}' 2>/dev/null)
+  if [ "$visible" = 11 ] &&
+    tmux list-clients -t "$sid" -F '#{client_flags}' 2>/dev/null |
+    grep -q focused; then
+    exit 0
+  fi
+fi
+
 if [ -n "$pane" ]; then
   # Claude Code sets the terminal title to the session topic behind a
   # status glyph (e.g. "✳ Fix login bug"); tmux keeps it as pane_title.
